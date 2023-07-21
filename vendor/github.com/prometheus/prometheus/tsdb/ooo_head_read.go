@@ -175,6 +175,28 @@ func (oh *OOOHeadIndexReader) LabelValues(name string, matchers ...*labels.Match
 	return labelValuesWithMatchers(oh, name, matchers...)
 }
 
+// LabelValuesStream needs to be overridden from the headIndexReader implementation due
+// to the check that happens at the beginning where we make sure that the query
+// interval overlaps with the head minooot and maxooot.
+func (oh *OOOHeadIndexReader) LabelValuesStream(name string, matchers ...*labels.Matcher) storage.LabelValues {
+	if oh.maxt < oh.head.MinOOOTime() || oh.mint > oh.head.MaxOOOTime() {
+		return nil
+	}
+
+	ownMatchers := 0
+	for _, m := range matchers {
+		if m.Name == name {
+			ownMatchers++
+		}
+	}
+	if ownMatchers == len(matchers) {
+		return oh.head.postings.LabelValuesStream(name, matchers...)
+	}
+
+	// There are matchers on other label names than the requested one, so will need to intersect matching series
+	return labelValuesForMatchersStream(oh, name, matchers)
+}
+
 type chunkMetaAndChunkDiskMapperRef struct {
 	meta     chunks.Meta
 	ref      chunks.ChunkDiskMapperRef
@@ -419,6 +441,10 @@ func (ir *OOOCompactionHeadIndexReader) ShardedPostings(p index.Postings, shardI
 	return ir.ch.oooIR.ShardedPostings(p, shardIndex, shardCount)
 }
 
+func (ir *OOOCompactionHeadIndexReader) LabelValuesIntersectingPostings(name string, postings index.Postings) storage.LabelValues {
+	return ir.ch.oooIR.LabelValuesIntersectingPostings(name, postings)
+}
+
 func (ir *OOOCompactionHeadIndexReader) Series(ref storage.SeriesRef, builder *labels.ScratchBuilder, chks *[]chunks.Meta) error {
 	return ir.ch.oooIR.series(ref, builder, chks, ir.ch.lastMmapRef)
 }
@@ -429,6 +455,10 @@ func (ir *OOOCompactionHeadIndexReader) SortedLabelValues(name string, matchers 
 
 func (ir *OOOCompactionHeadIndexReader) LabelValues(name string, matchers ...*labels.Matcher) ([]string, error) {
 	return nil, errors.New("not implemented")
+}
+
+func (ir *OOOCompactionHeadIndexReader) LabelValuesStream(string, ...*labels.Matcher) storage.LabelValues {
+	return storage.ErrLabelValues(errors.New("not implemented"))
 }
 
 func (ir *OOOCompactionHeadIndexReader) PostingsForMatchers(concurrent bool, ms ...*labels.Matcher) (index.Postings, error) {

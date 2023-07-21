@@ -134,6 +134,10 @@ func (m testQuerier) LabelValues(string, ...*labels.Matcher) ([]string, storage.
 	return nil, nil, nil
 }
 
+func (m testQuerier) LabelValuesStream(string, ...*labels.Matcher) storage.LabelValues {
+	return storage.EmptyLabelValues()
+}
+
 func (m testQuerier) LabelNames(...*labels.Matcher) ([]string, storage.Warnings, error) {
 	return nil, nil, nil
 }

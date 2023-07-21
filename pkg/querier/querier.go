@@ -393,6 +393,12 @@ func (mq multiQuerier) LabelValues(name string, matchers ...*labels.Matcher) ([]
 	return util.MergeSlices(sets...), warnings, nil
 }
 
+// LabelValuesStream implements storage.Querier.
+func (mq multiQuerier) LabelValuesStream(string, ...*labels.Matcher) storage.LabelValues {
+	// TODO
+	return storage.ErrLabelValues(fmt.Errorf("not implemented"))
+}
+
 func (mq multiQuerier) LabelNames(matchers ...*labels.Matcher) ([]string, storage.Warnings, error) {
 	if len(mq.queriers) == 1 {
 		return mq.queriers[0].LabelNames(matchers...)

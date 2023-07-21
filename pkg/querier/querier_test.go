@@ -1263,6 +1263,11 @@ func (m *mockBlocksStorageQuerier) LabelValues(name string, matchers ...*labels.
 	return args.Get(0).([]string), args.Get(1).(storage.Warnings), args.Error(2)
 }
 
+func (m *mockBlocksStorageQuerier) LabelValuesStream(name string, matchers ...*labels.Matcher) storage.LabelValues {
+	args := m.Called(name, matchers)
+	return args.Get(0).(storage.LabelValues)
+}
+
 func (m *mockBlocksStorageQuerier) LabelNames(matchers ...*labels.Matcher) ([]string, storage.Warnings, error) {
 	args := m.Called(matchers)
 	return args.Get(0).([]string), args.Get(1).(storage.Warnings), args.Error(2)

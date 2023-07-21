@@ -214,6 +214,12 @@ func (m mockTenantQuerier) LabelValues(name string, matchers ...*labels.Matcher)
 	return results, m.warnings, nil
 }
 
+// LabelValuesStream implements the storage.LabelQuerier interface.
+func (m mockTenantQuerier) LabelValuesStream(string, ...*labels.Matcher) storage.LabelValues {
+	// TODO
+	return storage.ErrLabelValues(fmt.Errorf("not implemented"))
+}
+
 // LabelNames implements the storage.LabelQuerier interface.
 // It returns a sorted slice of all label names in the querier.
 // If only one matcher is provided with label Name=seriesWithLabelNames then the resulting set will have the values of that matchers pipe-split appended.

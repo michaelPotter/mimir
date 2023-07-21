@@ -7,6 +7,7 @@ package querier
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/go-kit/log"
@@ -205,6 +206,10 @@ func (q *distributorQuerier) LabelValues(name string, matchers ...*labels.Matche
 	lvs, err := q.distributor.LabelValuesForLabelName(q.ctx, minT, model.Time(q.maxt), model.LabelName(name), matchers...)
 
 	return lvs, nil, err
+}
+
+func (q *distributorQuerier) LabelValuesStream(string, ...*labels.Matcher) storage.LabelValues {
+	return storage.ErrLabelValues(fmt.Errorf("not implemented"))
 }
 
 func (q *distributorQuerier) LabelNames(matchers ...*labels.Matcher) ([]string, storage.Warnings, error) {

@@ -7,6 +7,7 @@ package querier
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/gogo/status"
@@ -124,6 +125,11 @@ func (e errorTranslateQuerier) LabelValues(name string, matchers ...*labels.Matc
 	return values, warnings, e.fn(err)
 }
 
+func (e errorTranslateQuerier) LabelValuesStream(string, ...*labels.Matcher) storage.LabelValues {
+	// TODO
+	return storage.ErrLabelValues(fmt.Errorf("not implemented"))
+}
+
 func (e errorTranslateQuerier) LabelNames(matchers ...*labels.Matcher) ([]string, storage.Warnings, error) {
 	values, warnings, err := e.q.LabelNames(matchers...)
 	return values, warnings, e.fn(err)
@@ -146,6 +152,11 @@ type errorTranslateChunkQuerier struct {
 func (e errorTranslateChunkQuerier) LabelValues(name string, matchers ...*labels.Matcher) ([]string, storage.Warnings, error) {
 	values, warnings, err := e.q.LabelValues(name, matchers...)
 	return values, warnings, e.fn(err)
+}
+
+func (e errorTranslateChunkQuerier) LabelValuesStream(string, ...*labels.Matcher) storage.LabelValues {
+	// TODO
+	return storage.ErrLabelValues(fmt.Errorf("not implemented"))
 }
 
 func (e errorTranslateChunkQuerier) LabelNames(matchers ...*labels.Matcher) ([]string, storage.Warnings, error) {

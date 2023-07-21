@@ -1996,11 +1996,15 @@ func (m *querierMock) Select(sorted bool, _ *storage.SelectHints, matchers ...*l
 	return newSeriesIteratorMock(filtered)
 }
 
-func (m *querierMock) LabelValues(_ string, _ ...*labels.Matcher) ([]string, storage.Warnings, error) {
+func (m *querierMock) LabelValues(string, ...*labels.Matcher) ([]string, storage.Warnings, error) {
 	return nil, nil, nil
 }
 
-func (m *querierMock) LabelNames(_ ...*labels.Matcher) ([]string, storage.Warnings, error) {
+func (m *querierMock) LabelValuesStream(string, ...*labels.Matcher) storage.LabelValues {
+	return storage.EmptyLabelValues()
+}
+
+func (m *querierMock) LabelNames(...*labels.Matcher) ([]string, storage.Warnings, error) {
 	return nil, nil, nil
 }
 

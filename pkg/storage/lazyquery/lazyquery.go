@@ -62,6 +62,11 @@ func (l LazyQuerier) LabelValues(name string, matchers ...*labels.Matcher) ([]st
 	return l.next.LabelValues(name, matchers...)
 }
 
+// LabelValues implements Storage.Querier
+func (l LazyQuerier) LabelValuesStream(name string, matchers ...*labels.Matcher) storage.LabelValues {
+	return l.next.LabelValuesStream(name, matchers...)
+}
+
 // LabelNames implements Storage.Querier
 func (l LazyQuerier) LabelNames(matchers ...*labels.Matcher) ([]string, storage.Warnings, error) {
 	return l.next.LabelNames(matchers...)

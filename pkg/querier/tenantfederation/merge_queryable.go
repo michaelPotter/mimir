@@ -7,6 +7,7 @@ package tenantfederation
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"strings"
 
@@ -169,6 +170,11 @@ func (m *mergeQuerier) LabelValues(name string, matchers ...*labels.Matcher) ([]
 	return m.mergeDistinctStringSliceWithTenants(func(ctx context.Context, q storage.Querier) ([]string, storage.Warnings, error) {
 		return q.LabelValues(name, filteredMatchers...)
 	}, matchedTenants)
+}
+
+func (m *mergeQuerier) LabelValuesStream(string, ...*labels.Matcher) storage.LabelValues {
+	// TODO
+	return storage.ErrLabelValues(fmt.Errorf("not implemented"))
 }
 
 // LabelNames returns all the unique label names present in the underlying

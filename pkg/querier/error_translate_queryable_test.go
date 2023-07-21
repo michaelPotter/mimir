@@ -201,6 +201,10 @@ func (t errorTestQuerier) LabelValues(string, ...*labels.Matcher) ([]string, sto
 	return nil, nil, t.err
 }
 
+func (t errorTestQuerier) LabelValuesStream(string, ...*labels.Matcher) storage.LabelValues {
+	return storage.ErrLabelValues(t.err)
+}
+
 func (t errorTestQuerier) LabelNames(...*labels.Matcher) ([]string, storage.Warnings, error) {
 	return nil, nil, t.err
 }

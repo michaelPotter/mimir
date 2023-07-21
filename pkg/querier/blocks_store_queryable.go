@@ -430,6 +430,10 @@ func (q *blocksStoreQuerier) LabelValues(name string, matchers ...*labels.Matche
 	return util.MergeSlices(resValueSets...), resWarnings, nil
 }
 
+func (q *blocksStoreQuerier) LabelValuesStream(string, ...*labels.Matcher) storage.LabelValues {
+	return storage.ErrLabelValues(fmt.Errorf("not implemented"))
+}
+
 func (q *blocksStoreQuerier) Close() error {
 	return nil
 }

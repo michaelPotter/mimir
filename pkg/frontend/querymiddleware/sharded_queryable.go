@@ -133,12 +133,17 @@ func (q *shardedQuerier) handleEmbeddedQueries(queries []string, hints *storage.
 }
 
 // LabelValues implements storage.LabelQuerier.
-func (q *shardedQuerier) LabelValues(_ string, _ ...*labels.Matcher) ([]string, storage.Warnings, error) {
+func (q *shardedQuerier) LabelValues(string, ...*labels.Matcher) ([]string, storage.Warnings, error) {
 	return nil, nil, errNotImplemented
 }
 
+// LabelValuesStream implements storage.LabelQuerier.
+func (q *shardedQuerier) LabelValuesStream(string, ...*labels.Matcher) storage.LabelValues {
+	return storage.EmptyLabelValues()
+}
+
 // LabelNames implements storage.LabelQuerier.
-func (q *shardedQuerier) LabelNames(_ ...*labels.Matcher) ([]string, storage.Warnings, error) {
+func (q *shardedQuerier) LabelNames(...*labels.Matcher) ([]string, storage.Warnings, error) {
 	return nil, nil, errNotImplemented
 }
 
