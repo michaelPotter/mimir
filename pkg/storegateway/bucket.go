@@ -999,7 +999,7 @@ func (s *BucketStore) nonStreamingSeriesSetForBlocks(
 
 	var set storepb.SeriesSet
 	if !req.SkipChunks {
-		ss := newChunksPreloadingIterator(ctx, s.logger, s.userID, *chunkReaders, it, s.maxSeriesPerBatch, stats, req.MinTime, req.MaxTime)
+		ss := newChunksPreloadingIterator(ctx, s.logger, s.userID, *chunkReaders, it, s.maxSeriesPerBatch, stats)
 		set = newSeriesChunksSeriesSet(ss)
 	} else {
 		set = newSeriesSetWithoutChunks(ctx, it, stats)
@@ -1055,7 +1055,7 @@ func (s *BucketStore) streamingChunksSetForBlocks(
 	if err != nil {
 		return nil, err
 	}
-	scsi := newChunksPreloadingIterator(ctx, s.logger, s.userID, *chunkReaders, it, s.maxSeriesPerBatch, stats, req.MinTime, req.MaxTime)
+	scsi := newChunksPreloadingIterator(ctx, s.logger, s.userID, *chunkReaders, it, s.maxSeriesPerBatch, stats)
 	return scsi, nil
 }
 
@@ -1959,9 +1959,9 @@ type symbolizedLabel struct {
 }
 
 // decodeSeries decodes a series entry from the given byte slice decoding all chunk metas of the series.
-// If skipChunks is specified decodeSeries does not return any chunks, but only labels and only if at least single chunk is within time range.
+// If skipChunks is specified decodeSeries does not return any chunks, but only labels and only if there is at least a single chunk.
 // decodeSeries returns false, when there are no series data for given time range.
-func decodeSeries(b []byte, lsetPool *pool.SlabPool[symbolizedLabel], chks *[]chunks.Meta, strategy seriesIteratorStrategy) (ok bool, lset []symbolizedLabel, err error) {
+func decodeSeries(b []byte, lsetPool *pool.SlabPool[symbolizedLabel], chks *[]chunks.Meta, skipChunks bool) (ok bool, lset []symbolizedLabel, err error) {
 
 	*chks = (*chks)[:0]
 
@@ -1987,7 +1987,6 @@ func decodeSeries(b []byte, lsetPool *pool.SlabPool[symbolizedLabel], chks *[]ch
 	// Similar for first ref.
 	ref := int64(d.Uvarint64())
 
-	isNoChunks := strategy.isNoChunkRefsOnEntireBlock()
 	for i := 0; i < k; i++ {
 		if i > 0 {
 			mint += int64(d.Uvarint64())
@@ -1996,7 +1995,7 @@ func decodeSeries(b []byte, lsetPool *pool.SlabPool[symbolizedLabel], chks *[]ch
 		}
 
 		// Found a chunk.
-		if isNoChunks {
+		if skipChunks {
 			// We are not interested in chunks and we know there is at least one, that's enough to return series.
 			return true, lset, nil
 		}
