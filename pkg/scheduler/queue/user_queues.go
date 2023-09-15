@@ -78,8 +78,8 @@ func newUserQueues(maxUserQueueSize int, forgetDelay time.Duration) *queues {
 	}
 }
 
-func (q *queues) len() int {
-	return len(q.userQueues)
+func (q *queues) isEmpty() bool {
+	return len(q.userQueues) == 0
 }
 
 func (q *queues) deleteQueue(userID string) {
