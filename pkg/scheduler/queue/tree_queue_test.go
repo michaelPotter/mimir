@@ -65,48 +65,41 @@ func TestTreeQueue(t *testing.T) {
 
 	root := NewTreeQueue("root") // creates path: root
 
-	root.getOrAddNode([]string{"0"})      // creates paths: root:0
-	root.getOrAddNode([]string{"1", "0"}) // creates paths: root:1 and root:1:0
-	root.getOrAddNode([]string{"2", "0"}) // creates paths: root:2 and root:2:0
-	root.getOrAddNode([]string{"2", "1"}) // creates paths: root:2:1 only, as root:2 already exists
+	root.getOrAddNode([]string{"root", "0"})      // creates paths: root:0
+	root.getOrAddNode([]string{"root", "1", "0"}) // creates paths: root:1 and root:1:0
+	root.getOrAddNode([]string{"root", "2", "0"}) // creates paths: root:2 and root:2:0
+	root.getOrAddNode([]string{"root", "2", "1"}) // creates paths: root:2:1 only, as root:2 already exists
 
 	assert.Equal(t, expectedTreeQueue, root)
 
-	child, ok := root.getNode(QueuePath{"root", "0"})
-	assert.True(t, ok)
+	child := root.getNode(QueuePath{"root", "0"})
 	assert.NotNil(t, child)
 
-	child, ok = root.getNode(QueuePath{"root", "1"})
-	assert.True(t, ok)
+	child = root.getNode(QueuePath{"root", "1"})
 	assert.NotNil(t, child)
 
-	child, ok = root.getNode(QueuePath{"root", "1", "0"})
-	assert.True(t, ok)
+	child = root.getNode(QueuePath{"root", "1", "0"})
 	assert.NotNil(t, child)
 
-	child, ok = root.getNode([]string{"root", "2"})
-	assert.True(t, ok)
+	child = root.getNode([]string{"root", "2"})
 	assert.NotNil(t, child)
 
-	child, ok = root.getNode(QueuePath{"root", "2", "0"})
-	assert.True(t, ok)
+	child = root.getNode(QueuePath{"root", "2", "0"})
 	assert.NotNil(t, child)
 
-	child, ok = root.getNode(QueuePath{"root", "2", "1"})
-	assert.True(t, ok)
+	child = root.getNode(QueuePath{"root", "2", "1"})
 	assert.NotNil(t, child)
 
 	// nonexistent paths
-	child, ok = root.getNode(QueuePath{"root", "3"})
-	assert.False(t, ok)
+	child = root.getNode(QueuePath{"root", "3"})
+
 	assert.Nil(t, child)
 
-	child, ok = root.getNode(QueuePath{"root", "1", "1"})
-	assert.False(t, ok)
+	child = root.getNode(QueuePath{"root", "1", "1"})
+
 	assert.Nil(t, child)
 
-	child, ok = root.getNode(QueuePath{"root", "2", "2"})
-	assert.False(t, ok)
+	child = root.getNode(QueuePath{"root", "2", "2"})
 	assert.Nil(t, child)
 
 	// enqueue in order
