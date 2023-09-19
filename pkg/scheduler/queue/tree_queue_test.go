@@ -65,25 +65,62 @@ func TestTreeQueue(t *testing.T) {
 
 	root := NewTreeQueue("root") // creates path: root
 
-	root.getOrAddQueue([]string{"0"})      // creates paths: root:0
-	root.getOrAddQueue([]string{"1", "0"}) // creates paths: root:1 and root:1:0
-	root.getOrAddQueue([]string{"2", "0"}) // creates paths: root:2 and root:2:0
-	root.getOrAddQueue([]string{"2", "1"}) // creates paths: root:2:1 only, as root:2 already exists
+	root.getOrAddNode([]string{"0"})      // creates paths: root:0
+	root.getOrAddNode([]string{"1", "0"}) // creates paths: root:1 and root:1:0
+	root.getOrAddNode([]string{"2", "0"}) // creates paths: root:2 and root:2:0
+	root.getOrAddNode([]string{"2", "1"}) // creates paths: root:2:1 only, as root:2 already exists
 
 	assert.Equal(t, expectedTreeQueue, root)
 
+	child, ok := root.getNode(QueuePath{"root", "0"})
+	assert.True(t, ok)
+	assert.NotNil(t, child)
+
+	child, ok = root.getNode(QueuePath{"root", "1"})
+	assert.True(t, ok)
+	assert.NotNil(t, child)
+
+	child, ok = root.getNode(QueuePath{"root", "1", "0"})
+	assert.True(t, ok)
+	assert.NotNil(t, child)
+
+	child, ok = root.getNode([]string{"root", "2"})
+	assert.True(t, ok)
+	assert.NotNil(t, child)
+
+	child, ok = root.getNode(QueuePath{"root", "2", "0"})
+	assert.True(t, ok)
+	assert.NotNil(t, child)
+
+	child, ok = root.getNode(QueuePath{"root", "2", "1"})
+	assert.True(t, ok)
+	assert.NotNil(t, child)
+
+	// nonexistent paths
+	child, ok = root.getNode(QueuePath{"root", "3"})
+	assert.False(t, ok)
+	assert.Nil(t, child)
+
+	child, ok = root.getNode(QueuePath{"root", "1", "1"})
+	assert.False(t, ok)
+	assert.Nil(t, child)
+
+	child, ok = root.getNode(QueuePath{"root", "2", "2"})
+	assert.False(t, ok)
+	assert.Nil(t, child)
+
 	// enqueue in order
-	root.Enqueue([]string{"0"}, "root:0:val0")
-	root.Enqueue([]string{"1"}, "root:1:val0")
-	root.Enqueue([]string{"1"}, "root:1:val1")
-	root.Enqueue([]string{"2"}, "root:2:val0")
-	root.Enqueue([]string{"1", "0"}, "root:1:0:val0")
-	root.Enqueue([]string{"1", "0"}, "root:1:0:val1")
-	root.Enqueue([]string{"2", "0"}, "root:2:0:val0")
-	root.Enqueue([]string{"2", "0"}, "root:2:0:val1")
-	root.Enqueue([]string{"2", "1"}, "root:2:1:val0")
-	root.Enqueue([]string{"2", "1"}, "root:2:1:val1")
-	root.Enqueue([]string{"2", "1"}, "root:2:1:val2")
+	root.EnqueuePath([]string{"root", "0"}, "root:0:val0")
+	root.EnqueuePath([]string{"root", "1"}, "root:1:val0")
+	root.EnqueuePath([]string{"root", "1"}, "root:1:val1")
+	root.EnqueuePath([]string{"root", "2"}, "root:2:val0")
+	root.EnqueuePath([]string{"root", "1", "0"}, "root:1:0:val0")
+	root.EnqueuePath([]string{"root", "1", "0"}, "root:1:0:val1")
+	root.EnqueuePath([]string{"root", "2", "0"}, "root:2:0:val0")
+	root.EnqueuePath([]string{"root", "2", "0"}, "root:2:0:val1")
+	root.EnqueuePath([]string{"root", "2", "1"}, "root:2:1:val0")
+	root.EnqueuePath([]string{"root", "2", "1"}, "root:2:1:val1")
+	root.EnqueuePath([]string{"root", "2", "1"}, "root:2:1:val2")
 
 	// note no queue at a given level is dequeued from twice in a row
 	// unless all others at the same level are empty down to the leaf node
@@ -130,9 +167,43 @@ func TestTreeQueue(t *testing.T) {
 	assert.Equal(t, expectedQueueOutput, queueOutput)
 	assert.Equal(t, expectedQueuePaths, queuePaths)
 
-	// dequeue one more time;
+	// Dequeue one more time;
 	path, v := root.Dequeue()
-	assert.Nil(t, v)                         // assert we get nil back,
-	assert.Equal(t, path, QueuePath{"root"}) // assert only root existed to check
-	assert.True(t, root.isEmpty())           // assert nothing in local or child queues
+	assert.Nil(t, v) // assert we get nil back,
+	assert.Nil(t, path)
+	assert.True(t, root.isEmpty()) // assert nothing in local or child queues
+}
+
+func TestDequeuePath(t *testing.T) {
+	root := NewTreeQueue("root")
+	root.EnqueuePath(QueuePath{"root", "0"}, "root:0:val0")
+	root.EnqueuePath(QueuePath{"root", "1"}, "root:1:val0")
+	root.EnqueuePath(QueuePath{"root", "1"}, "root:1:val1")
+	root.EnqueuePath(QueuePath{"root", "2"}, "root:2:val0")
+	root.EnqueuePath(QueuePath{"root", "1", "0"}, "root:1:0:val0")
+	root.EnqueuePath(QueuePath{"root", "1", "0"}, "root:1:0:val1")
+	root.EnqueuePath(QueuePath{"root", "2", "0"}, "root:2:0:val0")
+	root.EnqueuePath(QueuePath{"root", "2", "0"}, "root:2:0:val1")
+	root.EnqueuePath(QueuePath{"root", "2", "1"}, "root:2:1:val0")
+	root.EnqueuePath(QueuePath{"root", "2", "1"}, "root:2:1:val1")
+	root.EnqueuePath(QueuePath{"root", "2", "1"}, "root:2:1:val2")
+
+	path := QueuePath{"root", "2", "1"}
+	dequeuedPath, v := root.DequeuePath(path)
+	assert.Equal(t, "root:2:1:val0", v)
+	assert.Equal(t, path, dequeuedPath[:len(path)])
+
+	dequeuedPath, v = root.DequeuePath(path)
+	assert.Equal(t, "root:2:1:val1", v)
+	assert.Equal(t, path, dequeuedPath[:len(path)])
+
+	dequeuedPath, v = root.DequeuePath(path)
+	assert.Equal(t, "root:2:1:val2", v)
+	assert.Equal(t, path, dequeuedPath[:len(path)])
+
+	// root:2:1 is exhausted
+	dequeuedPath, v = root.DequeuePath(path)
+	assert.Nil(t, v)
+	assert.Nil(t, dequeuedPath)
+
 }
