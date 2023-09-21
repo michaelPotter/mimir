@@ -127,6 +127,7 @@ func TestTreeQueue(t *testing.T) {
 		"root:2:1:val0",
 		"root:1:0:val1", // root:1:0:localQueue is done; no other queues in root:1, so root:1 is done as well
 		"root:2:0:val1", // root:2:0 :localQueue is done
+		"root:1:0:val2", // this is enqueued during dequeueing
 		"root:2:1:val1",
 		"root:2:1:val2", // root:2:1:localQueue is done; no other queues in root:2, so root:2 is done as well
 		// back up to root; its local queue is done and all childQueueOrder are done, so the full tree is done
@@ -142,13 +143,14 @@ func TestTreeQueue(t *testing.T) {
 		{"root", "2", "1"},
 		{"root", "1", "0"},
 		{"root", "2", "0"},
+		{"root", "1", "0"},
 		{"root", "2", "1"},
 		{"root", "2", "1"},
 	}
 
 	var queueOutput []any
 	var queuePaths []QueuePath
-	for {
+	for range expectedQueueOutput {
 		path, v := root.Dequeue()
 		if v == nil {
 			fmt.Println(path)
@@ -156,6 +158,14 @@ func TestTreeQueue(t *testing.T) {
 		}
 		queueOutput = append(queueOutput, v)
 		queuePaths = append(queuePaths, path)
+		if v == "root:1:0:val1" {
+			// root:1 and all subqueues are completely exhausted;
+			// root:2 will be next in the rotation
+			// here we insert something new into root:1 to test that:
+			//  - the new root:1 insert does not jump the line in front of root:2
+			//  - root:2 will not be dequeued from twice in a row now that there is a value in root:1 again
+			root.EnqueuePath([]string{"root", "1", "0"}, "root:1:0:val2")
+		}
 	}
 	assert.Equal(t, expectedQueueOutput, queueOutput)
 	assert.Equal(t, expectedQueuePaths, queuePaths)

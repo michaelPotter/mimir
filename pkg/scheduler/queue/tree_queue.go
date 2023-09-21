@@ -51,13 +51,13 @@ func NewTreeQueue(name string) *TreeQueue {
 func (q *TreeQueue) isEmpty() bool {
 	// avoid recursion to make this a cheap operation
 	//
-	// Because we dereference empty child queues during dequeuing
-	// we assume that emptiness means there are no child queues
+	// Because we dereference empty child nodes during dequeuing,
+	// we assume that emptiness means there are no child nodes
 	// and nothing in this tree node's local queue.
 	//
 	// In reality a package member could attach empty child queues with getOrAddNode
 	// in order to get a functionally-empty tree that would report false for isEmpty.
-	// We assume this does not occur during normal operation.
+	// We assume this does not occur or is not relevant during normal operation.
 	return q.localQueue.Len() == 0 && len(q.childQueueMap) == 0
 }
 
