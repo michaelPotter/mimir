@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.10.1
+
+### Grafana Mimir
+
+* [BUGFIX] Ingester: fix panic in WAL replay of certain native histograms. #6086
+
 ## 2.10.0
 
 ### Grafana Mimir
@@ -128,7 +134,6 @@
 * [BUGFIX] Querier: fix performance when ingesters stream samples. #5836
 * [BUGFIX] Ingester: fix spurious `not found` errors on label values API during head compaction. #5957
 * [BUGFIX] All: updated Minio object storage client from 7.0.62 to 7.0.63 to fix auto-detection of AWS GovCloud environments. #5905
-* [BUGFIX] Ingester: fix panic in WAL replay of certain native histograms. #6086
 
 ### Mixin
 
