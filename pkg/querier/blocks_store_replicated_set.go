@@ -98,7 +98,9 @@ func (s *blocksStoreReplicationSet) stopping(_ error) error {
 }
 
 func (s *blocksStoreReplicationSet) GetClientsFor(userID string, blockIDs []ulid.ULID, exclude map[ulid.ULID][]string) (map[BlocksStoreClient][]ulid.ULID, error) {
-	shards := map[string][]ulid.ULID{}
+	shards := map[string]*instanceBlocks{}
+
+	//instances := map[string]ring.InstanceDesc{}
 
 	userRing := storegateway.GetShuffleShardingSubring(s.storesRing, userID, s.limits)
 
@@ -114,30 +116,49 @@ func (s *blocksStoreReplicationSet) GetClientsFor(userID string, blockIDs []ulid
 		}
 
 		// Pick a non excluded store-gateway instance.
-		addr := getNonExcludedInstanceAddr(set, exclude[blockID], s.balancingStrategy)
-		if addr == "" {
+		inst := getNonExcludedInstance(set, exclude[blockID], s.balancingStrategy)
+		if inst == nil {
 			return nil, fmt.Errorf("no store-gateway instance left after checking exclude for block %s", blockID.String())
 		}
 
-		shards[addr] = append(shards[addr], blockID)
+		if _, ok := shards[inst.Addr]; !ok {
+			shards[inst.Addr] = newInstanceBlocks(*inst)
+		}
+
+		shards[inst.Addr].addBlock(blockID)
 	}
 
 	clients := map[BlocksStoreClient][]ulid.ULID{}
 
 	// Get the client for each store-gateway.
-	for addr, blockIDs := range shards {
-		c, err := s.clientsPool.GetClientFor(addr)
+	for _, instanceAndBlocks := range shards {
+		c, err := s.clientsPool.GetClientForInstance(instanceAndBlocks.inst)
 		if err != nil {
-			return nil, errors.Wrapf(err, "failed to get store-gateway client for %s", addr)
+			return nil, errors.Wrapf(err, "failed to get store-gateway client for %s %s", instanceAndBlocks.inst.Id, instanceAndBlocks.inst.Addr)
 		}
 
-		clients[c.(BlocksStoreClient)] = blockIDs
+		clients[c.(BlocksStoreClient)] = instanceAndBlocks.blocks
 	}
 
 	return clients, nil
 }
 
-func getNonExcludedInstanceAddr(set ring.ReplicationSet, exclude []string, balancingStrategy loadBalancingStrategy) string {
+// TODO: This is terrible. Turn it into a client builder type thing? You add inst + blocks in a loop
+// and then call .build() and get the map of client => []ULID
+type instanceBlocks struct {
+	inst   ring.InstanceDesc
+	blocks []ulid.ULID
+}
+
+func newInstanceBlocks(inst ring.InstanceDesc) *instanceBlocks {
+	return &instanceBlocks{inst: inst}
+}
+
+func (i *instanceBlocks) addBlock(id ulid.ULID) {
+	i.blocks = append(i.blocks, id)
+}
+
+func getNonExcludedInstance(set ring.ReplicationSet, exclude []string, balancingStrategy loadBalancingStrategy) *ring.InstanceDesc {
 	if balancingStrategy == randomLoadBalancing {
 		// Randomize the list of instances to not always query the same one.
 		rand.Shuffle(len(set.Instances), func(i, j int) {
@@ -147,9 +168,9 @@ func getNonExcludedInstanceAddr(set ring.ReplicationSet, exclude []string, balan
 
 	for _, instance := range set.Instances {
 		if !util.StringsContain(exclude, instance.Addr) {
-			return instance.Addr
+			return &instance
 		}
 	}
 
-	return ""
+	return nil
 }

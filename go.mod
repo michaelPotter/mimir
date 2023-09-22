@@ -247,6 +247,8 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
+replace github.com/grafana/dskit => github.com/grafana/dskit v0.0.0-20230927195345-23d3475a76ea
+
 // Using a fork of Prometheus with Mimir-specific changes.
 replace github.com/prometheus/prometheus => github.com/grafana/mimir-prometheus v0.0.0-20230922140437-a10cef685b49
 
