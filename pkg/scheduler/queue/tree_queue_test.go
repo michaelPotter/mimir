@@ -191,9 +191,21 @@ func TestDequeuePath(t *testing.T) {
 	root.EnqueuePath(QueuePath{"root", "2", "1"}, "root:2:1:val1")
 	root.EnqueuePath(QueuePath{"root", "2", "1"}, "root:2:1:val2")
 
-	path := QueuePath{"root", "2", "1"}
+	path := QueuePath{"root", "2"}
 	dequeuedPath, v := root.DequeuePath(path)
+	//assert.Equal(t, "root:2:0", v)
+	//assert.Equal(t, path, dequeuedPath[:len(path)])
+
+	dequeuedPath, v = root.DequeuePath(path)
+	assert.Equal(t, "root:2:0:val0", v)
+	assert.Equal(t, path, dequeuedPath[:len(path)])
+
+	dequeuedPath, v = root.DequeuePath(path)
 	assert.Equal(t, "root:2:1:val0", v)
+	assert.Equal(t, path, dequeuedPath[:len(path)])
+
+	dequeuedPath, v = root.DequeuePath(path)
+	assert.Equal(t, "root:2:0:val1", v)
 	assert.Equal(t, path, dequeuedPath[:len(path)])
 
 	dequeuedPath, v = root.DequeuePath(path)
@@ -204,7 +216,7 @@ func TestDequeuePath(t *testing.T) {
 	assert.Equal(t, "root:2:1:val2", v)
 	assert.Equal(t, path, dequeuedPath[:len(path)])
 
-	// root:2:1 is exhausted
+	// root:2 is exhausted
 	dequeuedPath, v = root.DequeuePath(path)
 	assert.Nil(t, v)
 	assert.Nil(t, dequeuedPath)
