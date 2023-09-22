@@ -193,8 +193,8 @@ func TestDequeuePath(t *testing.T) {
 
 	path := QueuePath{"root", "2"}
 	dequeuedPath, v := root.DequeuePath(path)
-	//assert.Equal(t, "root:2:0", v)
-	//assert.Equal(t, path, dequeuedPath[:len(path)])
+	assert.Equal(t, "root:2:val0", v)
+	assert.Equal(t, path, dequeuedPath[:len(path)])
 
 	dequeuedPath, v = root.DequeuePath(path)
 	assert.Equal(t, "root:2:0:val0", v)
